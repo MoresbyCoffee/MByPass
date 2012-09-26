@@ -48,6 +48,24 @@ public class ConverterContext {
 
     private final List<Converter<?, ?>> converters = new ArrayList<Converter<?, ?>>();
 
+    /**
+     * TODO javadoc.
+     */
+    static class ConverterTypes {
+
+        public final Type fromType;
+        public final Type toType;
+
+        /**
+         * @param fromType
+         * @param toType
+         */
+        public ConverterTypes(final Type fromType, final Type toType) {
+            this.fromType = fromType;
+            this.toType   = toType;
+        }
+
+    }
 
     /**
      * TODO javadoc.
@@ -57,11 +75,12 @@ public class ConverterContext {
      * @param converter
      * @return
      */
-    Type[] getConverterTypes(final Converter<?, ?> converter) {
+    ConverterTypes getConverterTypes(final Converter<?, ?> converter) {
         final Type[] interfaces = converter.getClass().getGenericInterfaces();
         for (final Type iface : interfaces) {
             if (TypeToken.of(Converter.class).isAssignableFrom(TypeToken.of(iface)) && iface instanceof ParameterizedType) {
-                return ((ParameterizedType) iface).getActualTypeArguments();
+                final Type[] generics = ((ParameterizedType) iface).getActualTypeArguments();
+                return new ConverterTypes(generics[0], generics[1]);
             }
         }
         throw new IllegalStateException("TODO comment");
@@ -71,10 +90,10 @@ public class ConverterContext {
     <F, T> T convert(final F from, final Type toClass) {
         for (@SuppressWarnings("rawtypes") final Converter converter : converters) {
 
-            final Type[] genericTypes = getConverterTypes(converter);
+            final ConverterTypes converterTypes = getConverterTypes(converter);
 
-            if (TypeToken.of(from.getClass()).isAssignableFrom(genericTypes[0])) {
-                if (TypeToken.of(toClass).isAssignableFrom(genericTypes[1])) {
+            if (TypeToken.of(from.getClass()).isAssignableFrom(converterTypes.fromType)) {
+                if (TypeToken.of(toClass).isAssignableFrom(converterTypes.toType)) {
                     return (T) converter.convert(from);
                 }
             }

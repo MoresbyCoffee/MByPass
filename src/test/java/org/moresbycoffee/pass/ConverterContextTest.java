@@ -30,10 +30,9 @@ package org.moresbycoffee.pass;
 
 import static org.junit.Assert.*;
 
-import java.lang.reflect.Type;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.moresbycoffee.pass.ConverterContext.ConverterTypes;
 import org.moresbycoffee.pass.api.Converter;
 import org.moresbycoffee.pass.api.Converters;
 
@@ -76,10 +75,10 @@ public class ConverterContextTest {
 
         final Converter<String, Integer> converter = Converters.STRING_TO_INTEGER;
 
-        final Type[] result = converterContext.getConverterTypes(converter);
+        final ConverterTypes result = converterContext.getConverterTypes(converter);
 
-        assertEquals(String.class, result[0]);
-        assertEquals(Integer.class, result[1]);
+        assertEquals(String.class,  result.fromType);
+        assertEquals(Integer.class, result.toType);
 
     }
 
