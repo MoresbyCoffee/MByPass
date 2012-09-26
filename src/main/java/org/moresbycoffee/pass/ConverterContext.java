@@ -28,6 +28,9 @@
  */
 package org.moresbycoffee.pass;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.moresbycoffee.pass.api.Converter;
 import org.moresbycoffee.pass.api.ConverterException;
 
@@ -38,6 +41,8 @@ import org.moresbycoffee.pass.api.ConverterException;
  * @since 2012
  */
 public class ConverterContext {
+
+    private final List<Converter<?, ?>> converters = new ArrayList<Converter<?, ?>>();
 
     /**
      * TODO javadoc.
@@ -56,7 +61,7 @@ public class ConverterContext {
      * @param converter
      */
     public <F, T> void add(final Converter<F, T> converter) {
-        throw new UnsupportedOperationException();
+        converters.add(converter);
     }
 
     /**
@@ -65,6 +70,6 @@ public class ConverterContext {
      * @param converter
      */
     public <F, T> void remove(final Converter<F, T> converter) {
-        throw new UnsupportedOperationException();
+        converters.remove(converter);
     }
 }

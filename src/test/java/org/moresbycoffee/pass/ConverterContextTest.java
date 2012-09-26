@@ -1,9 +1,9 @@
 /*
  * Moresby Coffee Bean
- * 
+ *
  * Copyright (c) 2012, Barnabas Sudy (barnabas.sudy@gmail.com)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -28,10 +28,9 @@
  */
 package org.moresbycoffee.pass;
 
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.moresbycoffee.pass.api.Converters;
 
 /**
  * TODO javadoc.
@@ -49,8 +48,16 @@ public class ConverterContextTest {
     }
 
     @Test
-    public void test() {
-        fail("Not yet implemented");
+    public void addConverter() {
+        final ConverterContext converterContext = new ConverterContext();
+        converterContext.add(Converters.STRING_TO_INTEGER);
+    }
+
+    @Test
+    public void removeConverter() {
+        final ConverterContext converterContext = new ConverterContext();
+        converterContext.add(Converters.STRING_TO_INTEGER);
+        converterContext.remove(Converters.STRING_TO_INTEGER);
     }
 
 }
