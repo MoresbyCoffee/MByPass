@@ -1,9 +1,9 @@
 /*
  * Moresby Coffee Bean
- * 
+ *
  * Copyright (c) 2012, Barnabas Sudy (barnabas.sudy@gmail.com)
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -32,6 +32,9 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.moresbycoffee.pass.ConverterContext.ConverterTypes;
+import org.moresbycoffee.pass.api.Converter;
+import org.moresbycoffee.pass.api.Converters;
 
 /**
  * TODO javadoc.
@@ -41,16 +44,56 @@ import org.junit.Test;
  */
 public class ConverterContextTest {
 
+    private ConverterContext converterContext;
+
     /**
      * @throws java.lang.Exception
      */
     @Before
     public void setUp() throws Exception {
+        converterContext = new ConverterContext();
     }
 
     @Test
-    public void test() {
-        fail("Not yet implemented");
+    public void addConverter() {
+        converterContext.add(Converters.STRING_TO_INTEGER);
+    }
+
+    @Test
+    public void removeAddedConverterShouldReturnTrue() {
+        converterContext.add(Converters.STRING_TO_INTEGER);
+        assertTrue(converterContext.remove(Converters.STRING_TO_INTEGER));
+    }
+
+    @Test
+    public void removeNotAddedConverterShouldReturnFalse() {
+        assertFalse(converterContext.remove(Converters.STRING_TO_INTEGER));
+    }
+
+    @Test
+    public void getConverterTypesShouldReturnCorrectTypes() {
+
+        final Converter<String, Integer> converter = Converters.STRING_TO_INTEGER;
+
+        final ConverterTypes result = converterContext.getConverterTypes(converter);
+
+        assertEquals(String.class,  result.fromType);
+        assertEquals(Integer.class, result.toType);
+
+    }
+
+    @Test
+    public void simpleConvertTest() {
+
+        /* Preparation */
+        final String  from     = "4";
+        final Integer expected = 4;
+
+        /* Test */
+        converterContext.add(Converters.STRING_TO_INTEGER);
+
+        /* Assertion / Verification */
+        assertEquals(expected, converterContext.<String, Integer>convert(from, Integer.class));
     }
 
 }

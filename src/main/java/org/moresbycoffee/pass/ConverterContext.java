@@ -28,8 +28,15 @@
  */
 package org.moresbycoffee.pass;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.moresbycoffee.pass.api.Converter;
 import org.moresbycoffee.pass.api.ConverterException;
+
+import com.google.common.reflect.TypeToken;
 
 /**
  * TODO javadoc.
@@ -39,6 +46,64 @@ import org.moresbycoffee.pass.api.ConverterException;
  */
 public class ConverterContext {
 
+    private final List<Converter<?, ?>> converters = new ArrayList<Converter<?, ?>>();
+
+    /**
+     * TODO javadoc.
+     */
+    static class ConverterTypes {
+
+        public final Type fromType;
+        public final Type toType;
+
+        /**
+         * @param fromType
+         * @param toType
+         */
+        public ConverterTypes(final Type fromType, final Type toType) {
+            this.fromType = fromType;
+            this.toType   = toType;
+        }
+
+    }
+
+    /**
+     * TODO javadoc.
+     *
+     * Package private for tests.
+     *
+     * @param converter
+     * @return
+     */
+    ConverterTypes getConverterTypes(final Converter<?, ?> converter) {
+        final Type[] interfaces = converter.getClass().getGenericInterfaces();
+        for (final Type iface : interfaces) {
+            if (TypeToken.of(Converter.class).isAssignableFrom(TypeToken.of(iface)) && iface instanceof ParameterizedType) {
+                final Type[] generics = ((ParameterizedType) iface).getActualTypeArguments();
+                return new ConverterTypes(generics[0], generics[1]);
+            }
+        }
+        throw new IllegalStateException("TODO comment");
+    }
+
+    @SuppressWarnings("unchecked")
+    <F, T> T convert(final F from, final Type toClass) {
+        for (@SuppressWarnings("rawtypes") final Converter converter : converters) {
+
+            final ConverterTypes converterTypes = getConverterTypes(converter);
+
+            if (TypeToken.of(from.getClass()).isAssignableFrom(converterTypes.fromType)) {
+                if (TypeToken.of(toClass).isAssignableFrom(converterTypes.toType)) {
+                    return (T) converter.convert(from);
+                }
+            }
+
+        }
+        throw new ConverterException("Not supported");
+
+
+    }
+
     /**
      * TODO javadoc.
      *
@@ -47,6 +112,26 @@ public class ConverterContext {
      * @throws ConverterException
      */
     public <F, T> T convert(final F from) throws ConverterException {
+
+        for (final Converter converter : converters) {
+
+            final Type[] interfaces = converter.getClass().getGenericInterfaces();
+            for (final Type iface : interfaces) {
+                if (TypeToken.of(Converter.class).isAssignableFrom(TypeToken.of(iface))) {
+                    if (iface instanceof ParameterizedType) {
+                        final Type[] genericTypes = ((ParameterizedType) iface).getActualTypeArguments();
+                        for (final Type genericType : genericTypes) {
+                            System.out.println("genericsTypes: " + genericType);
+                        }
+                    }
+                }
+            }
+
+
+
+
+        }
+
         throw new UnsupportedOperationException();
     }
 
@@ -56,7 +141,30 @@ public class ConverterContext {
      * @param converter
      */
     public <F, T> void add(final Converter<F, T> converter) {
-        throw new UnsupportedOperationException();
+//        final Type genericSuperclass = converter.getClass().getGenericSuperclass();
+//        if (genericSuperclass instanceof ParameterizedType) {
+//            System.out.println("-----------");
+//        }
+//        System.out.println("GenericSuperClass: " + genericSuperclass);
+//        System.out.println("RawType: " + TypeToken.of(converter.getClass()).getRawType());
+//
+//        final Type[] interfaces = converter.getClass().getGenericInterfaces();
+//        for (final Type iface : interfaces) {
+//            System.out.println("Type: " + iface);
+//            if (iface instanceof ParameterizedType) {
+//                System.out.println("-----------");
+//                final Type[] genericTypes = ((ParameterizedType) iface).getActualTypeArguments();
+//                for (final Type genericType : genericTypes) {
+//                    System.out.println("genericsTypes: " + genericType);
+//                }
+//            }
+//        }
+
+
+
+
+
+        converters.add(converter);
     }
 
     /**
@@ -64,7 +172,7 @@ public class ConverterContext {
      *
      * @param converter
      */
-    public <F, T> void remove(final Converter<F, T> converter) {
-        throw new UnsupportedOperationException();
+    public <F, T> boolean remove(final Converter<F, T> converter) {
+        return converters.remove(converter);
     }
 }
