@@ -28,6 +28,9 @@
  */
 package org.moresbycoffee.pass;
 
+import org.moresbycoffee.pass.api.Converter;
+import org.moresbycoffee.pass.api.ConverterException;
+
 /**
  * TODO javadoc.
  *
@@ -36,4 +39,32 @@ package org.moresbycoffee.pass;
  */
 public class ConverterContext {
 
+    /**
+     * TODO javadoc.
+     *
+     * @param from
+     * @return
+     * @throws ConverterException
+     */
+    public <F, T> T convert(final F from) throws ConverterException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * TODO javadoc.
+     *
+     * @param converter
+     */
+    public <F, T> void add(final Converter<F, T> converter) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * TODO javadoc.
+     *
+     * @param converter
+     */
+    public <F, T> void remove(final Converter<F, T> converter) {
+        throw new UnsupportedOperationException();
+    }
 }
