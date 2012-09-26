@@ -28,6 +28,8 @@
  */
 package org.moresbycoffee.pass;
 
+import static org.junit.Assert.*;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.moresbycoffee.pass.api.Converters;
@@ -54,10 +56,16 @@ public class ConverterContextTest {
     }
 
     @Test
-    public void removeConverter() {
+    public void removeAddedConverterShouldReturnTrue() {
         final ConverterContext converterContext = new ConverterContext();
         converterContext.add(Converters.STRING_TO_INTEGER);
-        converterContext.remove(Converters.STRING_TO_INTEGER);
+        assertTrue(converterContext.remove(Converters.STRING_TO_INTEGER));
+    }
+
+    @Test
+    public void removeNotAddedConverterShouldReturnFalse() {
+        final ConverterContext converterContext = new ConverterContext();
+        assertFalse(converterContext.remove(Converters.STRING_TO_INTEGER));
     }
 
 }

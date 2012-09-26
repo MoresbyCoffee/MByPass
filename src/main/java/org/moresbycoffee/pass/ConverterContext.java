@@ -69,7 +69,7 @@ public class ConverterContext {
      *
      * @param converter
      */
-    public <F, T> void remove(final Converter<F, T> converter) {
-        converters.remove(converter);
+    public <F, T> boolean remove(final Converter<F, T> converter) {
+        return converters.remove(converter);
     }
 }
