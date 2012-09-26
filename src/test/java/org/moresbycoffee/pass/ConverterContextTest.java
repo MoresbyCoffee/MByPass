@@ -30,8 +30,11 @@ package org.moresbycoffee.pass;
 
 import static org.junit.Assert.*;
 
+import java.lang.reflect.Type;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.moresbycoffee.pass.api.Converter;
 import org.moresbycoffee.pass.api.Converters;
 
 /**
@@ -42,30 +45,56 @@ import org.moresbycoffee.pass.api.Converters;
  */
 public class ConverterContextTest {
 
+    private ConverterContext converterContext;
+
     /**
      * @throws java.lang.Exception
      */
     @Before
     public void setUp() throws Exception {
+        converterContext = new ConverterContext();
     }
 
     @Test
     public void addConverter() {
-        final ConverterContext converterContext = new ConverterContext();
         converterContext.add(Converters.STRING_TO_INTEGER);
     }
 
     @Test
     public void removeAddedConverterShouldReturnTrue() {
-        final ConverterContext converterContext = new ConverterContext();
         converterContext.add(Converters.STRING_TO_INTEGER);
         assertTrue(converterContext.remove(Converters.STRING_TO_INTEGER));
     }
 
     @Test
     public void removeNotAddedConverterShouldReturnFalse() {
-        final ConverterContext converterContext = new ConverterContext();
         assertFalse(converterContext.remove(Converters.STRING_TO_INTEGER));
+    }
+
+    @Test
+    public void getConverterTypesShouldReturnCorrectTypes() {
+
+        final Converter<String, Integer> converter = Converters.STRING_TO_INTEGER;
+
+        final Type[] result = converterContext.getConverterTypes(converter);
+
+        assertEquals(String.class, result[0]);
+        assertEquals(Integer.class, result[1]);
+
+    }
+
+    @Test
+    public void simpleConvertTest() {
+
+        /* Preparation */
+        final String  from     = "4";
+        final Integer expected = 4;
+
+        /* Test */
+        converterContext.add(Converters.STRING_TO_INTEGER);
+
+        /* Assertion / Verification */
+        assertEquals(expected, converterContext.<String, Integer>convert(from, Integer.class));
     }
 
 }
