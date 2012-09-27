@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.moresbycoffee.pass.ConverterContext.ConverterTypes;
 import org.moresbycoffee.pass.api.Converter;
+import org.moresbycoffee.pass.api.ConverterException;
 import org.moresbycoffee.pass.api.Converters;
 
 /**
@@ -46,9 +47,6 @@ public class ConverterContextTest {
 
     private ConverterContext converterContext;
 
-    /**
-     * @throws java.lang.Exception
-     */
     @Before
     public void setUp() throws Exception {
         converterContext = new ConverterContext();
@@ -96,4 +94,26 @@ public class ConverterContextTest {
         assertEquals(expected, converterContext.<String, Integer>convert(from, Integer.class));
     }
 
+    @Test(expected = ClassCastException.class)
+    public void simpleConverterWithWrongTypeShouldThrowCastException() {
+        final String from = "4";
+        
+        converterContext.add(Converters.STRING_TO_INTEGER);
+    
+        /* Without the result cast it won't throw exception. */
+        @SuppressWarnings("unused")
+        final Boolean result = converterContext.<String, Boolean>convert(from, Integer.class);
+        
+    }
+    
+
+    @Test(expected = ConverterException.class)
+    public void notPossibleConversionShouldThrowConverterException() {
+        final String from = "true";
+        
+        converterContext.add(Converters.STRING_TO_INTEGER);
+        
+        converterContext.<String, Boolean>convert(from, Boolean.class);
+        
+    }
 }

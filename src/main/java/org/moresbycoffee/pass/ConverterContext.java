@@ -41,6 +41,8 @@ import com.google.common.reflect.TypeToken;
 /**
  * TODO javadoc.
  *
+ * <p><strong>Warning:</strong> The implementation is not thread safe. Do not modify the context until it is being used.</p>
+ *
  * @author Barnabas Sudy (barnabas.sudy@gmail.com)
  * @since 2012
  */
@@ -49,16 +51,22 @@ public class ConverterContext {
     private final List<Converter<?, ?>> converters = new ArrayList<Converter<?, ?>>();
 
     /**
-     * TODO javadoc.
+     * <p>This class is a small data structure storing a from and to type (of a converter)</p>
+     * 
+     * Package private for tests.
      */
     static class ConverterTypes {
 
+        /* CHECKSTYLE:OFF because this is a Data Structure Object without any logic and it will never have any setter nor complex getter. */
+        /** The input type of the converter. */
         public final Type fromType;
+        /** The output type of the converter. */
         public final Type toType;
+        /* CHECKSTYLE:ON */
 
         /**
-         * @param fromType
-         * @param toType
+         * @param fromType The input type of the converter.
+         * @param toType The output type of the converter.
          */
         public ConverterTypes(final Type fromType, final Type toType) {
             this.fromType = fromType;
@@ -68,33 +76,53 @@ public class ConverterContext {
     }
 
     /**
-     * TODO javadoc.
+     * Determines the input(from) and output(to) types of a converter in a {@link ConverterTypes} structure. 
      *
-     * Package private for tests.
+     * <p>Package private for tests.</p>
      *
-     * @param converter
-     * @return
+     * @param converter The converter
+     * @return The types of the converter wrapped in a {@link ConverterTypes} object.
      */
     ConverterTypes getConverterTypes(final Converter<?, ?> converter) {
         final Type[] interfaces = converter.getClass().getGenericInterfaces();
         for (final Type iface : interfaces) {
-            if (TypeToken.of(Converter.class).isAssignableFrom(TypeToken.of(iface)) && iface instanceof ParameterizedType) {
+            if (TypeToken.of(Converter.class).isAssignableFrom(TypeToken.of(iface))) {
+                /* The type of the Converter interface is ParameterizedType -> no need to check the cast*/
                 final Type[] generics = ((ParameterizedType) iface).getActualTypeArguments();
                 return new ConverterTypes(generics[0], generics[1]);
             }
         }
-        throw new IllegalStateException("TODO comment");
+        /* This error should never occur. */
+        throw new IllegalStateException("The converter doesn't have <F> from and <T> to generic types.");
     }
 
-    @SuppressWarnings("unchecked")
-    <F, T> T convert(final F from, final Type toClass) {
+    /**
+     * Converts a value (<tt>from</tt>) to a given type by the converters in the context. If the conversion is not possible the method will throw a {@link ConverterException}. 
+     * 
+     * @param <F> The type of the <em>input</em> object
+     * @param <T> The type of the <em>output</em> object
+     * 
+     * @param from The input object to be converted. (NonNull)
+     * @param toType The type of output object. (NonNull)
+     * @return The result of the conversion. (NonNull)
+     * 
+     * @throws ClassCastException If the <tt>toType</tt> can't be assigned to <tt>&lt;T&gt;</tt>.
+     * @throws ConverterException If an error occurs during the conversion or the conversion is not possible. 
+     */
+    <F, T> T convert(final F from, final Type toType) {
+        
         for (@SuppressWarnings("rawtypes") final Converter converter : converters) {
 
             final ConverterTypes converterTypes = getConverterTypes(converter);
 
             if (TypeToken.of(from.getClass()).isAssignableFrom(converterTypes.fromType)) {
-                if (TypeToken.of(toClass).isAssignableFrom(converterTypes.toType)) {
-                    return (T) converter.convert(from);
+                if (TypeToken.of(toType).isAssignableFrom(converterTypes.toType)) {
+                    /* 
+                     * There is no need to check the cast because the converter will provide "toType" object.
+                     */
+                    @SuppressWarnings("unchecked")
+                    final T result = (T) converter.convert(from);
+                    return result;
                 }
             }
 
@@ -105,74 +133,26 @@ public class ConverterContext {
     }
 
     /**
-     * TODO javadoc.
+     * <p>Adds (registers) a {@link Converter} into the {@link ConverterContext}. A registered converter will be used in the 
+     * converter algorithm what tries to find conversion between arbitrary types.</p>
+     * <p><strong>Warning:</strong> The implementation is not thread safe. Do not modify the context until it is being used.</p>
      *
-     * @param from
-     * @return
-     * @throws ConverterException
-     */
-    public <F, T> T convert(final F from) throws ConverterException {
-
-        for (final Converter converter : converters) {
-
-            final Type[] interfaces = converter.getClass().getGenericInterfaces();
-            for (final Type iface : interfaces) {
-                if (TypeToken.of(Converter.class).isAssignableFrom(TypeToken.of(iface))) {
-                    if (iface instanceof ParameterizedType) {
-                        final Type[] genericTypes = ((ParameterizedType) iface).getActualTypeArguments();
-                        for (final Type genericType : genericTypes) {
-                            System.out.println("genericsTypes: " + genericType);
-                        }
-                    }
-                }
-            }
-
-
-
-
-        }
-
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * TODO javadoc.
-     *
-     * @param converter
+     * @param converter The converter to be added to the context.
      */
     public <F, T> void add(final Converter<F, T> converter) {
-//        final Type genericSuperclass = converter.getClass().getGenericSuperclass();
-//        if (genericSuperclass instanceof ParameterizedType) {
-//            System.out.println("-----------");
-//        }
-//        System.out.println("GenericSuperClass: " + genericSuperclass);
-//        System.out.println("RawType: " + TypeToken.of(converter.getClass()).getRawType());
-//
-//        final Type[] interfaces = converter.getClass().getGenericInterfaces();
-//        for (final Type iface : interfaces) {
-//            System.out.println("Type: " + iface);
-//            if (iface instanceof ParameterizedType) {
-//                System.out.println("-----------");
-//                final Type[] genericTypes = ((ParameterizedType) iface).getActualTypeArguments();
-//                for (final Type genericType : genericTypes) {
-//                    System.out.println("genericsTypes: " + genericType);
-//                }
-//            }
-//        }
-
-
-
-
-
         converters.add(converter);
     }
 
     /**
-     * TODO javadoc.
+     * <p>Removes (unregisters) a {@link Converter} from the {@link ConverterContext}. The removed converter is no longer used in the
+     * conversion algorithm.</p>
+     * <p>To find the removable convert the {@link Object#equals(Object)} method is used.</p>
+     * <p><strong>Warning:</strong> The implementation is not thread safe. Do not modify the context until it is being used.</p>
      *
-     * @param converter
+     * @param converter The converter to be removed.
      */
     public <F, T> boolean remove(final Converter<F, T> converter) {
         return converters.remove(converter);
     }
+    
 }
